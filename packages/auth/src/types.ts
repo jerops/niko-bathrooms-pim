@@ -1,3 +1,8 @@
+export interface AuthState {
+  user: any;
+  isAuthenticated: boolean;
+}
+
 export interface AuthResult {
   success: boolean;
   user?: any;

@@ -7,14 +7,6 @@ export const ROUTES = {
   PRODUCTS: '/products',
   PRODUCT_DETAIL: '/products/:slug',
   
-  // Authentication routes
-  AUTH: {
-    LOGIN: '/dev/app/auth/login',
-    REGISTER: '/dev/app/auth/register',
-    LOGOUT: '/dev/app/auth/logout',
-    FORGOT_PASSWORD: '/dev/app/auth/forgot-password',
-    RESET_PASSWORD: '/dev/app/auth/reset-password',
-  },
   
   // Customer routes
   CUSTOMER: {
@@ -50,13 +42,7 @@ export const API_ENDPOINTS = {
   },
   
   SUPABASE: {
-    AUTH: {
-      SIGN_UP: '/auth/v1/signup',
-      SIGN_IN: '/auth/v1/token?grant_type=password',
-      SIGN_OUT: '/auth/v1/logout',
-      REFRESH: '/auth/v1/token?grant_type=refresh_token',
-      USER: '/auth/v1/user',
-    },
+  
     FUNCTIONS: {
       CREATE_WEBFLOW_USER: '/functions/v1/create-webflow-user',
       UPDATE_WISHLIST: '/functions/v1/update-wishlist',
