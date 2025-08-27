@@ -1,0 +1,48 @@
+{
+  "name": "@nikobathrooms/pim-system",
+  "description": "Niko Bathrooms PIM monorepo - Professional modular architecture",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@10.8.1",
+  "scripts": {
+    "dev": "pnpm --filter @nikobathrooms/pim-bundle dev",
+    "build": "pnpm --filter @nikobathrooms/pim-bundle build",
+    "build:all": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "lint:fix": "pnpm -r lint:fix",
+    "type-check": "pnpm -r type-check",
+    "clean": "pnpm -r clean",
+    "release": "changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.1",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.2",
+    "vitest": "^1.4.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jerops/niko-bathrooms-pim.git"
+  },
+  "keywords": [
+    "pim",
+    "webflow",
+    "supabase",
+    "authentication",
+    "wishlist",
+    "e-commerce",
+    "product-management"
+  ],
+  "author": "Niko Bathrooms",
+  "license": "MIT"
+}
