@@ -6,16 +6,19 @@
   "private": true,
   "packageManager": "pnpm@10.8.1",
   "scripts": {
-    "dev": "pnpm --filter @nikobathrooms/pim-bundle dev",
-    "build": "pnpm --filter @nikobathrooms/pim-bundle build",
-    "build:all": "pnpm -r build",
-    "test": "pnpm -r test",
-    "lint": "pnpm -r lint",
-    "lint:fix": "pnpm -r lint:fix",
-    "type-check": "pnpm -r type-check",
-    "clean": "pnpm -r clean",
+    "dev": "npm run --workspace=@nikobathrooms/pim-bundle dev || pnpm --filter @nikobathrooms/pim-bundle dev",
+    "build": "npm run --workspace=@nikobathrooms/pim-bundle build || pnpm --filter @nikobathrooms/pim-bundle build",
+    "build:all": "npm run --workspaces build || pnpm -r build",
+    "test": "npm run --workspaces test || pnpm -r test",
+    "lint": "npm run --workspaces lint || pnpm -r lint",
+    "lint:fix": "npm run --workspaces lint:fix || pnpm -r lint:fix",
+    "type-check": "npm run --workspaces type-check || pnpm -r type-check",
+    "clean": "npm run --workspaces clean || pnpm -r clean",
     "release": "changeset publish"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
     "@types/node": "^24.3.0",
@@ -28,9 +31,6 @@
     "typescript": "^5.4.2",
     "vitest": "^1.4.0"
   },
-  "workspaces": [
-    "packages/*"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/jerops/niko-bathrooms-pim.git"

@@ -2,3 +2,6 @@ packages:
   - 'packages/*'
   - 'examples/*'
   - 'apps/*'
+
+# If using npm workspaces instead of pnpm, 
+# you can delete this file and use package.json workspaces field
