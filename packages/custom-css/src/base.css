@@ -1,0 +1,180 @@
+/**
+ * Base HTML element styles for Niko Bathrooms PIM
+ */
+
+body {
+  color: var(--niko-gray-800);
+  background-color: var(--niko-gray-50);
+  font-size: var(--niko-text-base);
+  line-height: var(--niko-leading-normal);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--niko-gray-900);
+  font-weight: var(--niko-font-semibold);
+  line-height: var(--niko-leading-tight);
+  margin-bottom: var(--niko-space-4);
+}
+
+h1 {
+  font-size: var(--niko-text-3xl);
+}
+
+h2 {
+  font-size: var(--niko-text-2xl);
+}
+
+h3 {
+  font-size: var(--niko-text-xl);
+}
+
+h4 {
+  font-size: var(--niko-text-lg);
+}
+
+h5, h6 {
+  font-size: var(--niko-text-base);
+}
+
+p {
+  margin-bottom: var(--niko-space-4);
+  line-height: var(--niko-leading-relaxed);
+}
+
+a {
+  color: var(--niko-primary-600);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 2px;
+  transition: all var(--niko-transition-fast);
+}
+
+a:hover {
+  color: var(--niko-primary-700);
+  text-decoration-color: currentColor;
+}
+
+a:focus {
+  outline: 2px solid var(--niko-primary-500);
+  outline-offset: 2px;
+  border-radius: var(--niko-radius-sm);
+}
+
+/* Form elements */
+input,
+textarea,
+select {
+  background-color: white;
+  border: 1px solid var(--niko-gray-300);
+  border-radius: var(--niko-radius-md);
+  padding: var(--niko-space-2-5) var(--niko-space-3-5);
+  font-size: var(--niko-text-sm);
+  transition: all var(--niko-transition-fast);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--niko-primary-500);
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
+  background-color: var(--niko-gray-50);
+  color: var(--niko-gray-400);
+  cursor: not-allowed;
+}
+
+/* Buttons */
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--niko-space-2-5) var(--niko-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--niko-radius-md);
+  font-size: var(--niko-text-sm);
+  font-weight: var(--niko-font-medium);
+  line-height: 1;
+  cursor: pointer;
+  transition: all var(--niko-transition-fast);
+  text-decoration: none;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+}
+
+/* Lists */
+ul, ol {
+  margin-bottom: var(--niko-space-4);
+}
+
+li {
+  margin-bottom: var(--niko-space-1);
+}
+
+/* Code */
+code {
+  background-color: var(--niko-gray-100);
+  padding: var(--niko-space-1) var(--niko-space-1-5);
+  border-radius: var(--niko-radius-sm);
+  font-size: var(--niko-text-sm);
+}
+
+pre {
+  background-color: var(--niko-gray-900);
+  color: var(--niko-gray-100);
+  padding: var(--niko-space-4);
+  border-radius: var(--niko-radius-lg);
+  overflow-x: auto;
+  margin-bottom: var(--niko-space-4);
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--niko-space-6);
+}
+
+th, td {
+  padding: var(--niko-space-3) var(--niko-space-4);
+  text-align: left;
+  border-bottom: 1px solid var(--niko-gray-200);
+}
+
+th {
+  background-color: var(--niko-gray-50);
+  font-weight: var(--niko-font-semibold);
+  color: var(--niko-gray-900);
+}
+
+/* Utilities */
+.niko-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
