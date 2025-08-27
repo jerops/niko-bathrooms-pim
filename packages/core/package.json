@@ -1,0 +1,29 @@
+{
+  "name": "@nikobathrooms/core",
+  "version": "1.0.0",
+  "description": "Core utilities and types for Niko Bathrooms PIM system",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.2",
+    "vitest": "^1.4.0"
+  },
+  "keywords": ["pim", "core", "utilities", "types"],
+  "author": "Niko Bathrooms",
+  "license": "MIT"
+}
