@@ -1,0 +1,30 @@
+{
+  "name": "@nikobathrooms/auth",
+  "version": "1.0.0",
+  "description": "Authentication system for Niko Bathrooms PIM",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest",
+    "lint": "eslint src/",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@nikobathrooms/core": "workspace:*",
+    "@supabase/supabase-js": "^2.56.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.2",
+    "vitest": "^1.4.0"
+  },
+  "keywords": [
+    "auth",
+    "supabase",
+    "pim"
+  ],
+  "author": "Niko Bathrooms",
+  "license": "MIT"
+}
