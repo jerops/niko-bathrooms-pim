@@ -1,0 +1,18 @@
+{
+  "name": "@nikobathrooms/notifications",
+  "version": "1.0.0",
+  "description": "Toast notification system for Niko Bathrooms PIM",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@nikobathrooms/core": "workspace:*"
+  },
+  "files": [
+    "dist"
+  ]
+}
