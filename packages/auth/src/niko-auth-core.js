@@ -373,6 +373,12 @@
         el.style.opacity = '1';
       });
 
+      // Special handling if body itself has auth-required
+      if (document.body && document.body.hasAttribute('niko-data') && document.body.getAttribute('niko-data') === 'auth-required') {
+        document.body.style.visibility = 'visible';
+        document.body.style.opacity = '1';
+      }
+
       // Apply role-based visibility
       this.applyRoleBasedVisibility(userType);
 
