@@ -596,6 +596,10 @@
     }
 
     // Legacy methods for backward compatibility
+    isInitialized() {
+      return this.initialized;
+    }
+
     async getCurrentUser() {
       if (!this.initialized) return null;
       try {
