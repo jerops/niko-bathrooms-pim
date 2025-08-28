@@ -1,11 +1,11 @@
 /**
  * Webflow Form Handlers
- * Updated to use centralized redirect configuration
+ * Updated to handle correct signup → onboarding → dashboard flow
  */
 
 import { AuthManager } from '@nikobathrooms/auth';
 import { NotificationManager } from '@nikobathrooms/notifications';
-import { getEnvironmentAwareRedirectUrl, getEmailConfirmationUrl, REDIRECT_URLS } from '@nikobathrooms/auth/src/redirects.js';
+import { getDashboardUrl, getEmailConfirmationUrl } from '@nikobathrooms/auth/src/redirects.js';
 
 export class WebflowFormHandler {
   private auth: AuthManager;
@@ -84,16 +84,16 @@ export class WebflowFormHandler {
             message: 'Login successful! Redirecting...'
           });
 
-          // Get user role from metadata and redirect appropriately
+          // Get user role from metadata and redirect to DASHBOARD (not onboarding)
           const userRole = (result.user?.user_metadata?.role || 
                            result.user?.user_metadata?.user_type || 
                            'customer') as 'customer' | 'retailer';
           
-          console.log('Redirecting user with role:', userRole);
+          console.log('Login: Redirecting user with role to dashboard:', userRole);
           
-          // Use centralized redirect URL function
-          const redirectUrl = getEnvironmentAwareRedirectUrl(userRole);
-          window.location.href = redirectUrl;
+          // For login, go directly to dashboard (onboarding already completed)
+          const dashboardUrl = getDashboardUrl(userRole);
+          window.location.href = dashboardUrl;
           
         } else {
           this.notifications.show({
@@ -168,7 +168,7 @@ export class WebflowFormHandler {
 
       try {
         const userRole = detectRole();
-        console.log('Signing up user with role:', userRole);
+        console.log('Signing up user with role (email will redirect to onboarding):', userRole);
         
         const result = await this.auth.register({
           name: nameInput.value,
@@ -180,12 +180,13 @@ export class WebflowFormHandler {
         if (result.success) {
           this.notifications.show({
             type: 'success',
-            message: 'Account created successfully! Please check your email for confirmation.'
+            message: 'Account created successfully! Please check your email to complete registration.'
           });
 
-          // Redirect to email confirmation page using centralized function
+          // Redirect to email confirmation page immediately after signup
+          // Note: The email confirmation link will redirect to onboarding (handled by AuthManager)
           const confirmationUrl = getEmailConfirmationUrl();
-          console.log('Redirecting to email confirmation page:', confirmationUrl);
+          console.log('Signup: Redirecting to email confirmation page:', confirmationUrl);
           window.location.href = confirmationUrl;
           
         } else {
@@ -211,16 +212,21 @@ export class WebflowFormHandler {
   }
 
   /**
-   * Get appropriate redirect URL for a user role
-   * Useful for external integrations
+   * Get appropriate dashboard URL for a user role (for login)
    */
-  getRedirectUrl(role: 'customer' | 'retailer'): string {
-    return getEnvironmentAwareRedirectUrl(role);
+  getDashboardUrl(role: 'customer' | 'retailer'): string {
+    return getDashboardUrl(role);
+  }
+
+  /**
+   * Get onboarding URL for a user role (for new signups)
+   */
+  getOnboardingUrl(role: 'customer' | 'retailer'): string {
+    return this.auth.getOnboardingUrlForRole(role);
   }
 
   /**
    * Get email confirmation page URL
-   * Useful for external integrations
    */
   getEmailConfirmationUrl(): string {
     return getEmailConfirmationUrl();
