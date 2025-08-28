@@ -1,0 +1,20 @@
+{
+  "name": "@nikobathrooms/webflow-forms",
+  "version": "1.0.0",
+  "description": "Webflow form handlers for authentication pages",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@nikobathrooms/core": "workspace:*",
+    "@nikobathrooms/auth": "workspace:*",
+    "@nikobathrooms/notifications": "workspace:*"
+  },
+  "files": [
+    "dist"
+  ]
+}
