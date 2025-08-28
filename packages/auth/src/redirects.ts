@@ -1,13 +1,10 @@
 /**
  * Authentication Redirect URLs Configuration
- * Updated to match actual Niko Bathrooms site structure
+ * Updated for nikobathrooms.ie domain and actual site structure
  */
 
 export const REDIRECT_URLS = {
-  // Post-signup confirmation - users go to onboarding first
-  EMAIL_CONFIRMATION: '/confirm-email',
-  
-  // After email confirmation - redirect to onboarding based on role
+  // After email confirmation - users go directly to onboarding
   CUSTOMER_ONBOARDING: '/app/customer/onboarding',
   RETAILER_ONBOARDING: '/app/retailer/onboarding',
   
@@ -26,7 +23,7 @@ export const REDIRECT_URLS = {
 };
 
 /**
- * Get the appropriate redirect URL after email confirmation (to onboarding)
+ * Get the appropriate redirect URL after email confirmation (directly to onboarding)
  * This is what users see after clicking the email confirmation link
  */
 export function getPostConfirmationRedirectUrl(role: 'customer' | 'retailer', baseUrl?: string): string {
@@ -34,14 +31,6 @@ export function getPostConfirmationRedirectUrl(role: 'customer' | 'retailer', ba
   return role === 'customer' 
     ? `${base}${REDIRECT_URLS.CUSTOMER_ONBOARDING}`
     : `${base}${REDIRECT_URLS.RETAILER_ONBOARDING}`;
-}
-
-/**
- * Get email confirmation page URL (where users go immediately after signup)
- */
-export function getEmailConfirmationUrl(baseUrl?: string): string {
-  const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
-  return `${base}${REDIRECT_URLS.EMAIL_CONFIRMATION}`;
 }
 
 /**
@@ -63,25 +52,15 @@ export function getLoginUrl(baseUrl?: string): string {
 }
 
 /**
- * Detect if we're in development environment
- */
-export function isDevelopmentEnvironment(): boolean {
-  if (typeof window === 'undefined') return false;
-  
-  return window.location.hostname === 'localhost' || 
-         window.location.hostname.includes('127.0.0.1') ||
-         window.location.pathname.includes('/dev/');
-}
-
-/**
  * MAIN FUNCTION: Get redirect URL for email confirmation links
  * This should be used in the emailRedirectTo parameter during signup
+ * Users go directly to onboarding after email confirmation
  */
 export function getSignupEmailRedirectUrl(role: 'customer' | 'retailer', baseUrl?: string): string {
   return getPostConfirmationRedirectUrl(role, baseUrl);
 }
 
-// Legacy function for backward compatibility - now redirects to onboarding
+// Legacy function for backward compatibility
 export function getEnvironmentAwareRedirectUrl(role: 'customer' | 'retailer', baseUrl?: string): string {
   return getPostConfirmationRedirectUrl(role, baseUrl);
 }
