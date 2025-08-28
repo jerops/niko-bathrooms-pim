@@ -181,7 +181,14 @@
         // Set authentication cookies (triple security)
         this.setAuthCookies(user, sessionData.session);
 
-        // Wait for cookies to be properly set before redirecting (20 seconds)
+        // Ensure session is properly stored in localStorage for Supabase
+        console.log('NikoAuth: Ensuring session persistence in localStorage');
+        await this.supabase.auth.setSession({
+          access_token: sessionData.session.access_token,
+          refresh_token: sessionData.session.refresh_token
+        });
+
+        // Wait for cookies and session to be properly set before redirecting (20 seconds)
         await new Promise(resolve => setTimeout(resolve, 20000));
 
         // Redirect to onboarding
