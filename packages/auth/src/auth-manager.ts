@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { AuthResult, RegisterData, LoginData } from './types.js';
+import { getEnvironmentAwareRedirectUrl, getEmailConfirmationUrl } from './redirects.js';
 
 export class AuthManager {
   private supabase: SupabaseClient;
@@ -91,11 +92,11 @@ export class AuthManager {
         };
       }
 
-      // 5. Proceed with registration
-      const baseHref = document.querySelector('base')?.href || location.origin + '/';
-      const redirectUrl = data.role === 'customer'
-        ? baseHref + 'dev/app/customer/dashboard'
-        : baseHref + 'dev/app/retailer/dashboard';
+      // 5. Get proper redirect URL based on role and environment
+      const baseUrl = document.querySelector('base')?.href || window.location.origin;
+      const redirectUrl = getEnvironmentAwareRedirectUrl(data.role, baseUrl);
+
+      console.log('Using redirect URL for email confirmation:', redirectUrl);
 
       const { data: result, error } = await this.supabase.auth.signUp({
         email: data.email.toLowerCase().trim(), // Normalize email
@@ -241,6 +242,22 @@ export class AuthManager {
   async isAuthenticated(): Promise<boolean> {
     const user = await this.getCurrentUser();
     return !!user;
+  }
+
+  /**
+   * Get appropriate redirect URL for user role
+   */
+  getRedirectUrlForRole(role: 'customer' | 'retailer'): string {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    return getEnvironmentAwareRedirectUrl(role, baseUrl);
+  }
+
+  /**
+   * Get email confirmation page URL
+   */
+  getEmailConfirmationPageUrl(): string {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    return getEmailConfirmationUrl(baseUrl);
   }
 
   private async createWebflowRecord(userId: string, email: string, name: string, userType: string) {
