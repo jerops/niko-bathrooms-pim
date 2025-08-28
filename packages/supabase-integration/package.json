@@ -1,0 +1,21 @@
+{
+  "name": "@nikobathrooms/supabase-integration",
+  "version": "1.0.0",
+  "description": "Supabase Edge Functions and database integration",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "deploy": "supabase functions deploy",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@nikobathrooms/core": "workspace:*",
+    "@supabase/supabase-js": "^2.45.4"
+  },
+  "files": [
+    "dist",
+    "supabase/functions"
+  ]
+}
