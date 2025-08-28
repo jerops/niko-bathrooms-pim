@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Niko Authentication with Custom Webflow Loader</title>
+</head>
+<body>
+  
+  <!-- User's Custom Webflow Loader -->
+  <div niko-data="page-loader" class="page-loader-wrapper w-embed">
+    <span class="loader"></span>
+    <style>
+      .loader {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 6rem;
+        margin-top: 3rem;
+        margin-bottom: 3rem;
+      }
+      .loader:before,
+      .loader:after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        animation: pulsOut 1.8s ease-in-out infinite;
+        filter: drop-shadow(0 0 1rem rgba(255, 255, 255, 0.75));
+      }
+      .loader:before {
+        width: 100%;
+        padding-bottom: 100%;
+        box-shadow: inset 0 0 0 1rem #fff;
+        animation-name: pulsIn;
+      }
+      .loader:after {
+        width: calc(100% - 2rem);
+        padding-bottom: calc(100% - 2rem);
+        box-shadow: 0 0 0 0 #fff;
+      }
+
+      @keyframes pulsIn {
+        0% {
+          box-shadow: inset 0 0 0 1rem #fff;
+          opacity: 1;
+        }
+        50%, 100% {
+          box-shadow: inset 0 0 0 0 #fff;
+          opacity: 0;
+        }
+      }
+
+      @keyframes pulsOut {
+        0%, 50% {
+          box-shadow: 0 0 0 0 #fff;
+          opacity: 0;
+        }
+        100% {
+          box-shadow: 0 0 0 1rem #fff;
+          opacity: 1;
+        }
+      }
+      
+      /* Position the loader for testing */
+      .page-loader-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+    </style>
+  </div>
+
+  <!-- Protected content -->
+  <div niko-data="auth-required">
+    <h1>Protected Content</h1>
+    <p>This content requires authentication</p>
+    <p>User: <span niko-data="user-name">Loading...</span></p>
+    <p>Email: <span niko-data="user-email">Loading...</span></p>
+    <p>Role: <span niko-data="user-role">Loading...</span></p>
+  </div>
+
+  <!-- Customer only content -->
+  <div niko-data="auth-required" niko-role="customer">
+    <h2>Customer Dashboard</h2>
+    <p>This is only visible to customers</p>
+  </div>
+
+  <!-- Retailer only content -->
+  <div niko-data="auth-required" niko-role="retailer">
+    <h2>Retailer Dashboard</h2>
+    <p>This is only visible to retailers</p>
+  </div>
+
+  <!-- Test buttons -->
+  <div style="position: fixed; bottom: 20px; left: 20px; z-index: 10000;">
+    <button onclick="testShowLoader()">Show Loader</button>
+    <button onclick="testHideLoader()">Hide Loader</button>
+    <button onclick="testShowError()">Show Error</button>
+  </div>
+
+  <!-- Include the Niko PIM bundle -->
+  <script src="../packages/custom-css/src/page-loader.js"></script>
+  
+  <script>
+    // Test functions
+    function testShowLoader() {
+      console.log('Testing: Show loader');
+      NikoPageLoader.show('Testing authentication...');
+    }
+    
+    function testHideLoader() {
+      console.log('Testing: Hide loader');
+      NikoPageLoader.hide();
+    }
+    
+    function testShowError() {
+      console.log('Testing: Show error');
+      NikoPageLoader.showError('Authentication failed', '/app/auth/log-in');
+    }
+
+    // Simulate authentication test
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOM loaded, testing custom Webflow loader...');
+      
+      // Test the loader detection
+      const loaders = document.querySelectorAll('[niko-data="page-loader"]');
+      console.log('Found loaders:', loaders.length);
+      
+      // Simulate authentication flow
+      setTimeout(() => {
+        console.log('Simulating authentication check...');
+        NikoPageLoader.show('Checking credentials...');
+        
+        // Simulate successful authentication
+        setTimeout(() => {
+          console.log('Simulating successful authentication');
+          NikoPageLoader.setAuthState(true, 'customer');
+          NikoPageLoader.populateUserData({
+            name: 'Test User',
+            email: 'test@example.com',
+            userType: 'customer'
+          });
+          NikoPageLoader.hide();
+        }, 2000);
+      }, 1000);
+    });
+  </script>
+
+</body>
+</html>

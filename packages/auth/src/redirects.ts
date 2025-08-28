@@ -5,21 +5,21 @@
 
 export const REDIRECT_URLS = {
   // After email confirmation - users go directly to onboarding
-  CUSTOMER_ONBOARDING: '/app/customer/onboarding',
-  RETAILER_ONBOARDING: '/app/retailer/onboarding',
+  CUSTOMER_ONBOARDING: '/dev/app/customer/onboarding',
+  RETAILER_ONBOARDING: '/dev/app/retailer/onboarding',
   
   // Final dashboards (after onboarding is complete)
-  CUSTOMER_DASHBOARD: '/app/customer/dashboard',
-  RETAILER_DASHBOARD: '/app/retailer/dashboard',
+  CUSTOMER_DASHBOARD: '/dev/app/customer/dashboard',
+  RETAILER_DASHBOARD: '/dev/app/retailer/dashboard',
   
   // Authentication pages
-  LOGIN: '/app/auth/log-in',
-  SIGNUP: '/app/auth/sign-up',
-  FORGOT_PASSWORD: '/app/auth/forgot-password',
-  RESET_PASSWORD: '/app/auth/reset-password',
+  LOGIN: '/dev/app/auth/log-in',
+  SIGNUP: '/dev/app/auth/sign-up',
+  FORGOT_PASSWORD: '/dev/app/auth/forgot-password',
+  RESET_PASSWORD: '/dev/app/auth/reset-password',
   
   // Email confirmation page (immediately after signup)  
-  EMAIL_CONFIRMATION: '/app/auth/email-confirmation',
+  EMAIL_CONFIRMATION: '/dev/app/auth/email-confirmation',
   
   // Error/fallback
   DEFAULT: '/'

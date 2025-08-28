@@ -1,13 +1,16 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { AuthResult, RegisterData, LoginData } from './types.js';
 import { getSignupEmailRedirectUrl, getEmailConfirmationUrl, getDashboardUrl } from './redirects.js';
+import { AuthStateManager, type AuthStateConfig } from '../../content-gating/src/auth-state-manager.js';
 
 export class AuthManager {
   private supabase: SupabaseClient;
   private initialized = false;
+  private authStateManager: AuthStateManager;
 
-  constructor(supabaseUrl: string, supabaseKey: string) {
+  constructor(supabaseUrl: string, supabaseKey: string, authStateConfig?: AuthStateConfig) {
     this.supabase = createClient(supabaseUrl, supabaseKey);
+    this.authStateManager = new AuthStateManager(authStateConfig);
     this.initialized = true;
     console.log('Niko Auth Manager initialized');
   }
@@ -196,6 +199,16 @@ export class AuthManager {
       }
 
       console.log('Login successful:', result.user?.email);
+      
+      // Set authentication cookies after successful login
+      if (result.user && result.session) {
+        const userType = (result.user.user_metadata?.user_type || 
+                         result.user.user_metadata?.role || 
+                         'customer') as 'customer' | 'retailer';
+        
+        this.setAuthenticationCookies(result.session.access_token, result.user.id, userType);
+      }
+      
       return { success: true, user: result.user };
     } catch (error) {
       console.error('Login failed:', error);
@@ -208,6 +221,9 @@ export class AuthManager {
 
     try {
       const { error } = await this.supabase.auth.signOut();
+      
+      // Clear authentication cookies
+      this.clearAuthenticationState();
       
       // Clear storage like production
       localStorage.clear();
@@ -287,5 +303,40 @@ export class AuthManager {
     } catch (error) {
       console.warn('Edge function error:', error);
     }
+  }
+
+  /**
+   * Set authentication cookies (integrates with PageGuard)
+   */
+  setAuthenticationCookies(token: string, uid: string, userType: 'customer' | 'retailer'): void {
+    this.authStateManager.setAuthenticationCookies(token, uid, userType);
+  }
+
+  /**
+   * Clear authentication state and cookies
+   */
+  clearAuthenticationState(): void {
+    this.authStateManager.clearAuthenticationCookies();
+  }
+
+  /**
+   * Validate current authentication state
+   */
+  async validateAuthenticationState(): Promise<boolean> {
+    return await this.authStateManager.validateAuthenticationState(async (token) => {
+      try {
+        const { data: { user }, error } = await this.supabase.auth.getUser(token);
+        return error ? null : user;
+      } catch {
+        return null;
+      }
+    });
+  }
+
+  /**
+   * Get authentication state manager instance
+   */
+  getAuthStateManager(): AuthStateManager {
+    return this.authStateManager;
   }
 }
