@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { AuthResult, RegisterData, LoginData } from './types.js';
-import { getEnvironmentAwareRedirectUrl, getEmailConfirmationUrl } from './redirects.js';
+import { getSignupEmailRedirectUrl, getEmailConfirmationUrl, getDashboardUrl } from './redirects.js';
 
 export class AuthManager {
   private supabase: SupabaseClient;
@@ -92,11 +92,11 @@ export class AuthManager {
         };
       }
 
-      // 5. Get proper redirect URL based on role and environment
+      // 5. Get proper redirect URL for email confirmation (to onboarding)
       const baseUrl = document.querySelector('base')?.href || window.location.origin;
-      const redirectUrl = getEnvironmentAwareRedirectUrl(data.role, baseUrl);
+      const emailRedirectUrl = getSignupEmailRedirectUrl(data.role, baseUrl);
 
-      console.log('Using redirect URL for email confirmation:', redirectUrl);
+      console.log('Email confirmation will redirect to onboarding:', emailRedirectUrl);
 
       const { data: result, error } = await this.supabase.auth.signUp({
         email: data.email.toLowerCase().trim(), // Normalize email
@@ -109,7 +109,7 @@ export class AuthManager {
             display_name: data.name.trim(),
             email_normalized: data.email.toLowerCase().trim()
           },
-          emailRedirectTo: redirectUrl,
+          emailRedirectTo: emailRedirectUrl, // This goes to onboarding after email confirmation
         },
       });
 
@@ -245,15 +245,23 @@ export class AuthManager {
   }
 
   /**
-   * Get appropriate redirect URL for user role
+   * Get appropriate onboarding URL for user role (after email confirmation)
    */
-  getRedirectUrlForRole(role: 'customer' | 'retailer'): string {
+  getOnboardingUrlForRole(role: 'customer' | 'retailer'): string {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    return getEnvironmentAwareRedirectUrl(role, baseUrl);
+    return getSignupEmailRedirectUrl(role, baseUrl);
   }
 
   /**
-   * Get email confirmation page URL
+   * Get final dashboard URL for user role (after onboarding complete)
+   */
+  getDashboardUrlForRole(role: 'customer' | 'retailer'): string {
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    return getDashboardUrl(role, baseUrl);
+  }
+
+  /**
+   * Get email confirmation page URL (where users go immediately after signup)
    */
   getEmailConfirmationPageUrl(): string {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
