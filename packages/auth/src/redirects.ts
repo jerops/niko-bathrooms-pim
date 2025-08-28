@@ -18,6 +18,9 @@ export const REDIRECT_URLS = {
   FORGOT_PASSWORD: '/app/auth/forgot-password',
   RESET_PASSWORD: '/app/auth/reset-password',
   
+  // Email confirmation page (immediately after signup)  
+  EMAIL_CONFIRMATION: '/app/auth/email-confirmation',
+  
   // Error/fallback
   DEFAULT: '/'
 };
@@ -58,6 +61,14 @@ export function getLoginUrl(baseUrl?: string): string {
  */
 export function getSignupEmailRedirectUrl(role: 'customer' | 'retailer', baseUrl?: string): string {
   return getPostConfirmationRedirectUrl(role, baseUrl);
+}
+
+/**
+ * Get email confirmation page URL (where users go immediately after signup)
+ */
+export function getEmailConfirmationUrl(baseUrl?: string): string {
+  const base = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '');
+  return `${base}${REDIRECT_URLS.EMAIL_CONFIRMATION}`;
 }
 
 // Legacy function for backward compatibility
