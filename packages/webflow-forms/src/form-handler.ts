@@ -1,25 +1,27 @@
 /**
  * Webflow Form Handlers
- * Based on our previous working implementation from "Site Authentication Project Setup"
- * 
- * This addresses the specific button IDs and form handling that was working before
+ * Updated to use centralized redirect configuration
  */
 
 import { AuthManager } from '@nikobathrooms/auth';
 import { NotificationManager } from '@nikobathrooms/notifications';
+import { getEnvironmentAwareRedirectUrl, getEmailConfirmationUrl, REDIRECT_URLS } from '@nikobathrooms/auth/src/redirects.js';
 
 export class WebflowFormHandler {
   private auth: AuthManager;
   private notifications: NotificationManager;
 
-  constructor() {
-    this.auth = new AuthManager();
+  constructor(supabaseUrl?: string, supabaseKey?: string) {
+    // Allow passing Supabase credentials or use from environment
+    this.auth = new AuthManager(
+      supabaseUrl || process.env.SUPABASE_URL || '', 
+      supabaseKey || process.env.SUPABASE_ANON_KEY || ''
+    );
     this.notifications = new NotificationManager();
   }
 
   /**
    * Initialize form handlers for login page
-   * Based on our previous working implementation with specific element IDs
    */
   initLoginForm(): void {
     // Wait for DOM to be ready
@@ -32,7 +34,6 @@ export class WebflowFormHandler {
 
   /**
    * Initialize form handlers for signup page  
-   * Based on our previous working implementation with role detection
    */
   initSignupForm(): void {
     if (document.readyState === 'loading') {
@@ -83,13 +84,17 @@ export class WebflowFormHandler {
             message: 'Login successful! Redirecting...'
           });
 
-          // Redirect based on role (from our previous implementation)
-          const userRole = result.user?.role;
-          if (userRole === 'retailer') {
-            window.location.href = '/dev/app/retailer-dashboard';
-          } else {
-            window.location.href = '/dev/app/customer-dashboard';
-          }
+          // Get user role from metadata and redirect appropriately
+          const userRole = (result.user?.user_metadata?.role || 
+                           result.user?.user_metadata?.user_type || 
+                           'customer') as 'customer' | 'retailer';
+          
+          console.log('Redirecting user with role:', userRole);
+          
+          // Use centralized redirect URL function
+          const redirectUrl = getEnvironmentAwareRedirectUrl(userRole);
+          window.location.href = redirectUrl;
+          
         } else {
           this.notifications.show({
             type: 'error',
@@ -97,6 +102,7 @@ export class WebflowFormHandler {
           });
         }
       } catch (error) {
+        console.error('Login error:', error);
         this.notifications.show({
           type: 'error',
           message: 'Login error occurred'
@@ -162,6 +168,7 @@ export class WebflowFormHandler {
 
       try {
         const userRole = detectRole();
+        console.log('Signing up user with role:', userRole);
         
         const result = await this.auth.register({
           name: nameInput.value,
@@ -173,11 +180,14 @@ export class WebflowFormHandler {
         if (result.success) {
           this.notifications.show({
             type: 'success',
-            message: 'Account created successfully! Please check your email.'
+            message: 'Account created successfully! Please check your email for confirmation.'
           });
 
-          // Redirect to email confirmation page
-          window.location.href = '/dev/app/email-confirmation';
+          // Redirect to email confirmation page using centralized function
+          const confirmationUrl = getEmailConfirmationUrl();
+          console.log('Redirecting to email confirmation page:', confirmationUrl);
+          window.location.href = confirmationUrl;
+          
         } else {
           this.notifications.show({
             type: 'error',
@@ -185,6 +195,7 @@ export class WebflowFormHandler {
           });
         }
       } catch (error) {
+        console.error('Registration error:', error);
         this.notifications.show({
           type: 'error',
           message: 'Registration error occurred'
@@ -198,11 +209,27 @@ export class WebflowFormHandler {
       }
     });
   }
+
+  /**
+   * Get appropriate redirect URL for a user role
+   * Useful for external integrations
+   */
+  getRedirectUrl(role: 'customer' | 'retailer'): string {
+    return getEnvironmentAwareRedirectUrl(role);
+  }
+
+  /**
+   * Get email confirmation page URL
+   * Useful for external integrations
+   */
+  getEmailConfirmationUrl(): string {
+    return getEmailConfirmationUrl();
+  }
 }
 
 // Auto-initialize based on page
-export function initWebflowForms(): void {
-  const handler = new WebflowFormHandler();
+export function initWebflowForms(supabaseUrl?: string, supabaseKey?: string): void {
+  const handler = new WebflowFormHandler(supabaseUrl, supabaseKey);
   
   // Detect page type and initialize appropriate handler
   if (window.location.pathname.includes('log-in')) {
@@ -210,4 +237,7 @@ export function initWebflowForms(): void {
   } else if (window.location.pathname.includes('sign-up')) {
     handler.initSignupForm();
   }
+  
+  // Make handler available globally for debugging
+  (window as any).NikoFormHandler = handler;
 }
