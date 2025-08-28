@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "npm run --workspace=@nikobathrooms/pim-bundle dev || pnpm --filter @nikobathrooms/pim-bundle dev",
     "build": "npm run --workspace=@nikobathrooms/pim-bundle build || pnpm --filter @nikobathrooms/pim-bundle build",
-    "build:all": "npm run --workspaces build || pnpm -r build",
+    "build:all": "pnpm --filter @nikobathrooms/core build && pnpm --filter @nikobathrooms/auth build && pnpm --filter @nikobathrooms/pim-bundle build",
+    "build:simple": "pnpm --filter @nikobathrooms/pim-bundle build",
     "test": "npm run --workspaces test || pnpm -r test",
     "lint": "npm run --workspaces lint || pnpm -r lint",
     "lint:fix": "npm run --workspaces lint:fix || pnpm -r lint:fix",
