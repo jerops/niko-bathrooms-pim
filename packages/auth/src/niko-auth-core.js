@@ -181,6 +181,9 @@
         // Set authentication cookies (triple security)
         this.setAuthCookies(user, sessionData.session);
 
+        // Wait for cookies to be properly set before redirecting
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         // Redirect to onboarding
         const userType = user.user_metadata?.user_type || user.user_metadata?.role || 'customer';
         const onboardingUrl = userType === 'retailer' 
