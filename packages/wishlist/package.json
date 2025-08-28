@@ -1,0 +1,26 @@
+{
+  "name": "@nikobathrooms/wishlist",
+  "version": "1.0.0",
+  "description": "Wishlist functionality for Niko Bathrooms PIM",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "vitest",
+    "lint": "eslint src --ext .ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nikobathrooms/core": "workspace:*",
+    "@supabase/supabase-js": "^2.45.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "rollup": "^4.21.0",
+    "typescript": "^5.5.4"
+  },
+  "files": [
+    "dist"
+  ]
+}
