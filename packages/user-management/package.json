@@ -1,0 +1,20 @@
+{
+  "name": "@nikobathrooms/user-management",
+  "version": "1.0.0", 
+  "description": "User management dashboard and profile features",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w", 
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@nikobathrooms/core": "workspace:*",
+    "@nikobathrooms/auth": "workspace:*",
+    "@nikobathrooms/notifications": "workspace:*"
+  },
+  "files": [
+    "dist"
+  ]
+}
