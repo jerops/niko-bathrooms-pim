@@ -38,18 +38,28 @@
   // ============================================================================
   class NikoAuthCore {
     constructor() {
+      console.log('🚀 NikoAuthCore constructor called');
       this.supabase = null;
       this.initialized = false;
       this.authStateListeners = [];
+      console.log('📋 Initial state set, calling init()');
       this.init();
     }
 
     async init() {
-      console.log('Loading Niko Auth Core v5.0.0 (Professional)');
+      console.log('🔧 Loading Niko Auth Core v5.0.0 (Professional)');
+      console.log('📍 Current URL:', window.location.href);
+      console.log('🍪 Document cookies available:', document.cookie ? 'YES' : 'NO');
       
       if (typeof supabase === 'undefined') {
+        console.log('📦 Supabase not found, loading from CDN...');
         await this.loadSupabase();
+        console.log('✅ Supabase loaded successfully');
+      } else {
+        console.log('✅ Supabase already available');
       }
+      
+      console.log('⚙️ Initializing Supabase client with professional config...');
       
       // Initialize Supabase with professional configuration
       this.supabase = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY, {
@@ -62,15 +72,30 @@
         }
       });
       
+      console.log('✅ Supabase client created with config:', {
+        storage: 'cookieStorage',
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        flowType: 'pkce'
+      });
+      
       this.initialized = true;
-      console.log('Niko Auth Core v5.0.0 initialized with professional security');
+      console.log('🎉 Niko Auth Core v5.0.0 initialized with professional security');
+      console.log('🔗 Available on window.NikoAuthCore and window.NikoAuth');
       
       // Setup auth state monitoring
+      console.log('👂 Setting up auth state listener...');
       this.setupAuthStateListener();
+      
+      console.log('🚪 Setting up logout handlers...');
       this.setupLogoutHandlers();
       
       // Check initial auth state
+      console.log('🔍 Checking initial auth state...');
       await this.checkAuthState();
+      
+      console.log('✨ Initialization complete!');
     }
 
     loadSupabase() {
@@ -249,9 +274,12 @@
     // AUTHENTICATION METHODS
     // ============================================================================
     async register(email, password, name, userType) {
-      console.log('Registering user:', { email, userType });
+      console.log('📝 REGISTER METHOD CALLED');
+      console.log('👤 Registering user:', { email, userType, name });
+      console.log('🔧 Initialized status:', this.initialized);
       
       if (!this.initialized) {
+        console.error('❌ Authentication system not initialized');
         throw new Error('Authentication system not initialized');
       }
 
@@ -259,6 +287,9 @@
         const redirectUrl = userType.toLowerCase() === 'retailer'
           ? window.location.origin + CONFIG.ROUTES.RETAILER_ONBOARDING
           : window.location.origin + CONFIG.ROUTES.CUSTOMER_ONBOARDING;
+
+        console.log('🔄 Redirect URL:', redirectUrl);
+        console.log('📧 Calling Supabase auth.signUp...');
 
         const { data, error } = await this.supabase.auth.signUp({
           email: email,
@@ -274,19 +305,22 @@
         });
 
         if (error) {
-          console.error('Registration error:', error);
+          console.error('❌ Registration error:', error);
           return { success: false, error: error.message };
         }
 
-        console.log('Registration successful:', data.user?.email);
+        console.log('✅ Registration successful:', data.user?.email);
+        console.log('👤 User data:', data.user);
         
         // Create Webflow record
+        console.log('📊 Creating Webflow record...');
         await this.createWebflowRecord(data.user.id, email, name, userType);
         
+        console.log('🎉 Registration complete!');
         return { success: true, user: data.user };
 
       } catch (error) {
-        console.error('Registration failed:', error);
+        console.error('💥 Registration failed with error:', error);
         return { success: false, error: error.message };
       }
     }
@@ -501,24 +535,40 @@
   // ============================================================================
   // AUTO-INITIALIZE
   // ============================================================================
+  console.log('🏁 AUTO-INITIALIZE SECTION REACHED');
+  console.log('📄 Document readyState:', document.readyState);
+  console.log('🌐 Window location:', window.location.href);
+  
   if (document.readyState === 'loading') {
+    console.log('⏳ Document still loading, waiting for DOMContentLoaded...');
     document.addEventListener('DOMContentLoaded', () => {
+      console.log('🎬 DOMContentLoaded fired, creating NikoAuthCore...');
       window.NikoAuthCore = new NikoAuthCore();
       window.NikoAuth = window.NikoAuthCore; // Alias for compatibility
+      console.log('✅ window.NikoAuthCore created');
+      console.log('✅ window.NikoAuth alias created');
     });
   } else {
+    console.log('✨ Document ready, creating NikoAuthCore immediately...');
     window.NikoAuthCore = new NikoAuthCore();
     window.NikoAuth = window.NikoAuthCore; // Alias for compatibility
+    console.log('✅ window.NikoAuthCore created');
+    console.log('✅ window.NikoAuth alias created');
   }
 
   // Legacy global logout function
   window.nikologout = async function() {
+    console.log('🚪 nikologout function called');
     if (window.NikoAuthCore) {
       await window.NikoAuthCore.logout();
       window.location.href = CONFIG.ROUTES.LOGIN_PAGE;
+    } else {
+      console.error('❌ window.NikoAuthCore not found');
     }
   };
+  console.log('✅ nikologout function registered');
 
-  console.log('NikoAuth: Professional authentication system loaded v5.0.0');
+  console.log('🎉 NikoAuth: Professional authentication system loaded v5.0.0');
+  console.log('🔍 You can test with: window.NikoAuthCore or window.NikoAuth');
 
 })(window);
