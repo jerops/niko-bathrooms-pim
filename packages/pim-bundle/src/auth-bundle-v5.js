@@ -78,6 +78,11 @@
           persistSession: true,
           detectSessionInUrl: true,
           flowType: 'implicit' // Use implicit flow for email confirmations to work
+        },
+        global: {
+          headers: {
+            'X-Client-Info': 'niko-auth-v5'
+          }
         }
       });
       
@@ -100,17 +105,47 @@
       console.log('🚪 Setting up logout handlers...');
       this.setupLogoutHandlers();
       
-      // Handle email confirmation tokens in URL
-      console.log('📧 Checking for email confirmation token...');
-      const emailConfirmed = await this.handleEmailConfirmation();
+      // Check if we're coming back from email confirmation
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const errorCode = hashParams.get('error_code');
+      const errorDesc = hashParams.get('error_description');
       
-      // Only check auth state if we didn't just handle email confirmation
-      // (email confirmation already handles the authenticated user)
-      if (!emailConfirmed) {
-        console.log('🔍 Checking initial auth state...');
+      if (errorCode || errorDesc) {
+        console.error('❌ Auth error in URL:', errorCode, errorDesc);
+        // Clear the error from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      
+      // Let Supabase handle the URL automatically first
+      console.log('🔄 Letting Supabase detect session in URL...');
+      
+      try {
+        // Give Supabase a moment to process the URL
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const { data: { session }, error } = await this.supabase.auth.getSession();
+        
+        if (error) {
+          console.error('❌ Error getting session:', error);
+        }
+        
+        if (session) {
+          console.log('✅ Session detected by Supabase');
+          console.log('👤 User:', session.user?.email);
+          this.handleAuthenticatedUser(session.user);
+          
+          // Clean the URL after successful session detection
+          if (window.location.hash) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } else {
+          // If no session from URL, check normal auth state
+          console.log('🔍 No session in URL, checking auth state...');
+          await this.checkAuthState();
+        }
+      } catch (error) {
+        console.error('❌ Failed to check session:', error);
         await this.checkAuthState();
-      } else {
-        console.log('✅ Skipping auth check - email confirmation already handled');
       }
       
       console.log('✨ Initialization complete!');
@@ -485,28 +520,13 @@
     async checkAuthState() {
       console.log('🔍 Checking auth state...');
       
-      // First attempt to get user
-      let user = await this.getCurrentUser();
-      
-      // If no user and we have tokens in URL, wait a bit for session to establish
-      if (!user && window.location.hash.includes('access_token')) {
-        console.log('⏳ Tokens in URL but no session yet, waiting for session establishment...');
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        user = await this.getCurrentUser();
-      }
-      
-      // If still no user but cookies might be setting, try once more
-      if (!user && document.cookie.includes('sb-')) {
-        console.log('⏳ Cookies detected, giving session one more chance...');
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        user = await this.getCurrentUser();
-      }
+      const user = await this.getCurrentUser();
       
       if (user) {
         console.log('✅ User authenticated:', user.email);
         this.handleAuthenticatedUser(user);
       } else if (this.isProtectedPage()) {
-        console.log('❌ No user found on protected page after retries, redirecting to login...');
+        console.log('❌ No user found on protected page, redirecting to login...');
         this.redirectToLogin();
       } else {
         console.log('ℹ️ No user found on public page, continuing without auth');
