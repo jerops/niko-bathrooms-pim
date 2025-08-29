@@ -3,15 +3,22 @@
 (function(window) {
   'use strict';
 
+  // Detect if we're in development or production
+  const isDev = window.location.hostname === 'localhost' || 
+                window.location.hostname === '127.0.0.1' || 
+                window.location.hostname.includes('webflow.io');
+  
+  const pathPrefix = isDev ? '/dev' : '';
+  
   const CONFIG = {
     SUPABASE_URL: 'https://bzjoxjqfpmjhbfijthpp.supabase.co',
     SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6am94anFmcG1qaGJmaWp0aHBwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU3NjIyMzksImV4cCI6MjA3MTMzODIzOX0.sL9omeLIgpgqYjTJM6SGQPSvUvm5z-Yr9rOzkOi2mJk',
     ROUTES: {
-      CUSTOMER_ONBOARDING: '/dev/app/customer/onboarding',
-      RETAILER_ONBOARDING: '/dev/app/retailer/onboarding',
-      CUSTOMER_DASHBOARD: '/dev/app/customer/dashboard',
-      RETAILER_DASHBOARD: '/dev/app/retailer/dashboard',
-      LOGIN_PAGE: '/dev/app/auth/log-in'
+      CUSTOMER_ONBOARDING: `${pathPrefix}/app/customer/onboarding`,
+      RETAILER_ONBOARDING: `${pathPrefix}/app/retailer/onboarding`,
+      CUSTOMER_DASHBOARD: `${pathPrefix}/app/customer/dashboard`,
+      RETAILER_DASHBOARD: `${pathPrefix}/app/retailer/dashboard`,
+      LOGIN_PAGE: `${pathPrefix}/app/auth/log-in`
     }
   };
 
@@ -48,7 +55,9 @@
 
     async init() {
       console.log('🔧 Loading Niko Auth Core v5.0.0 (Professional)');
+      console.log('🌍 Environment:', isDev ? 'DEVELOPMENT' : 'PRODUCTION');
       console.log('📍 Current URL:', window.location.href);
+      console.log('🛤️ Path prefix:', pathPrefix || '(none)');
       console.log('🍪 Document cookies available:', document.cookie ? 'YES' : 'NO');
       
       if (typeof supabase === 'undefined') {
@@ -552,8 +561,8 @@
       return document.querySelector('[niko-data="auth-required"]') !== null ||
              document.querySelector('[data-auth="required"]') !== null ||
              window.location.pathname.includes('/dashboard') ||
-             window.location.pathname.includes('/dev/app/customer/') ||
-             window.location.pathname.includes('/dev/app/retailer/');
+             window.location.pathname.includes(`${pathPrefix}/app/customer/`) ||
+             window.location.pathname.includes(`${pathPrefix}/app/retailer/`);
     }
 
     redirectToLogin() {
