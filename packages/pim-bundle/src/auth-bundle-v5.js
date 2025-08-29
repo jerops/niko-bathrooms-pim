@@ -102,11 +102,16 @@
       
       // Handle email confirmation tokens in URL
       console.log('📧 Checking for email confirmation token...');
-      await this.handleEmailConfirmation();
+      const emailConfirmed = await this.handleEmailConfirmation();
       
-      // Check initial auth state
-      console.log('🔍 Checking initial auth state...');
-      await this.checkAuthState();
+      // Only check auth state if we didn't just handle email confirmation
+      // (email confirmation already handles the authenticated user)
+      if (!emailConfirmed) {
+        console.log('🔍 Checking initial auth state...');
+        await this.checkAuthState();
+      } else {
+        console.log('✅ Skipping auth check - email confirmation already handled');
+      }
       
       console.log('✨ Initialization complete!');
     }
@@ -131,6 +136,7 @@
       
       if (accessToken && refreshToken) {
         console.log('📬 Email confirmation tokens found in URL');
+        console.log('🔑 Access token (first 20 chars):', accessToken.substring(0, 20) + '...');
         
         try {
           // Set the session manually with the tokens from the URL
@@ -141,11 +147,14 @@
           
           if (error) {
             console.error('❌ Error setting session from email confirmation:', error);
-            return;
+            return false;
           }
           
           console.log('✅ Session established from email confirmation');
           console.log('👤 User confirmed:', data.user?.email);
+          
+          // Give cookies time to be set
+          await new Promise(resolve => setTimeout(resolve, 500));
           
           // Clean the URL
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -153,11 +162,16 @@
           // Handle the authenticated user
           this.handleAuthenticatedUser(data.user);
           
+          // Return true to indicate we handled email confirmation
+          return true;
+          
         } catch (error) {
           console.error('❌ Failed to handle email confirmation:', error);
+          return false;
         }
       } else {
         console.log('📭 No email confirmation tokens in URL');
+        return false;
       }
     }
 
@@ -469,13 +483,33 @@
     }
 
     async checkAuthState() {
-      const user = await this.getCurrentUser();
+      console.log('🔍 Checking auth state...');
+      
+      // First attempt to get user
+      let user = await this.getCurrentUser();
+      
+      // If no user and we have tokens in URL, wait a bit for session to establish
+      if (!user && window.location.hash.includes('access_token')) {
+        console.log('⏳ Tokens in URL but no session yet, waiting for session establishment...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        user = await this.getCurrentUser();
+      }
+      
+      // If still no user but cookies might be setting, try once more
+      if (!user && document.cookie.includes('sb-')) {
+        console.log('⏳ Cookies detected, giving session one more chance...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        user = await this.getCurrentUser();
+      }
+      
       if (user) {
-        console.log('User authenticated:', user.email);
+        console.log('✅ User authenticated:', user.email);
         this.handleAuthenticatedUser(user);
       } else if (this.isProtectedPage()) {
-        console.log('No user found on protected page, redirecting...');
+        console.log('❌ No user found on protected page after retries, redirecting to login...');
         this.redirectToLogin();
+      } else {
+        console.log('ℹ️ No user found on public page, continuing without auth');
       }
     }
 
