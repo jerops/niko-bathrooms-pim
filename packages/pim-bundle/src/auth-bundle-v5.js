@@ -77,7 +77,7 @@
           autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: true,
-          flowType: 'pkce' // PKCE for enhanced security
+          flowType: 'implicit' // Use implicit flow for email confirmations to work
         }
       });
       
@@ -86,7 +86,7 @@
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
-        flowType: 'pkce'
+        flowType: 'implicit'
       });
       
       this.initialized = true;
