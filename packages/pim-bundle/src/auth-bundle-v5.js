@@ -552,6 +552,8 @@
 
     async createWebflowRecord(userId, email, name, userType) {
       try {
+        console.log('🔄 Calling Edge Function with:', { user_id: userId, email, name, user_type: userType });
+        
         const { data, error } = await this.supabase.functions.invoke('create-webflow-user', {
           body: {
             user_id: userId,
@@ -562,12 +564,21 @@
         });
 
         if (error) {
-          console.warn('Webflow integration error (user still created in Supabase):', error);
+          console.error('❌ Webflow Edge Function error:', error);
+          console.error('❌ Error details:', {
+            message: error.message,
+            status: error.status,
+            statusText: error.statusText
+          });
+          // Don't fail registration due to Webflow integration issues
         } else {
-          console.log('Webflow CMS record created');
+          console.log('✅ Webflow CMS record created successfully');
+          console.log('📊 Response data:', data);
         }
       } catch (error) {
-        console.warn('Edge function error:', error);
+        console.error('💥 Edge function network/runtime error:', error);
+        console.error('🔍 Error type:', error.constructor.name);
+        // Don't fail registration due to Webflow integration issues
       }
     }
 
