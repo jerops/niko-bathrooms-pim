@@ -91,6 +91,10 @@
       console.log('🚪 Setting up logout handlers...');
       this.setupLogoutHandlers();
       
+      // Handle email confirmation tokens in URL
+      console.log('📧 Checking for email confirmation token...');
+      await this.handleEmailConfirmation();
+      
       // Check initial auth state
       console.log('🔍 Checking initial auth state...');
       await this.checkAuthState();
@@ -106,6 +110,46 @@
         script.onerror = reject;
         document.head.appendChild(script);
       });
+    }
+
+    // ============================================================================
+    // EMAIL CONFIRMATION HANDLING
+    // ============================================================================
+    async handleEmailConfirmation() {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      
+      if (accessToken && refreshToken) {
+        console.log('📬 Email confirmation tokens found in URL');
+        
+        try {
+          // Set the session manually with the tokens from the URL
+          const { data, error } = await this.supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+          
+          if (error) {
+            console.error('❌ Error setting session from email confirmation:', error);
+            return;
+          }
+          
+          console.log('✅ Session established from email confirmation');
+          console.log('👤 User confirmed:', data.user?.email);
+          
+          // Clean the URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          // Handle the authenticated user
+          this.handleAuthenticatedUser(data.user);
+          
+        } catch (error) {
+          console.error('❌ Failed to handle email confirmation:', error);
+        }
+      } else {
+        console.log('📭 No email confirmation tokens in URL');
+      }
     }
 
     // ============================================================================
