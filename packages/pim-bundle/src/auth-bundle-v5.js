@@ -402,7 +402,8 @@
               user_type: userType.toLowerCase(),
               role: userType.toLowerCase()
             },
-            emailRedirectTo: redirectUrl
+            emailRedirectTo: redirectUrl,
+            captchaToken: null // Disable captcha for testing
           }
         });
 
@@ -413,6 +414,12 @@
 
         console.log('✅ Registration successful:', data.user?.email);
         console.log('👤 User data:', data.user);
+        console.log('📧 Email confirmed?', data.user?.email_confirmed_at ? 'YES' : 'NO');
+        console.log('🔐 Session created?', data.session ? 'YES' : 'NO');
+        
+        if (!data.user?.email_confirmed_at) {
+          console.log('📮 Confirmation email should be sent to:', data.user?.email);
+        }
         
         // Create Webflow record
         console.log('📊 Creating Webflow record...');
@@ -445,6 +452,16 @@
           return { success: false, error: error.message };
         }
 
+        // Check if email is confirmed
+        if (data.user && !data.user.email_confirmed_at) {
+          console.error('❌ Email not confirmed for user:', data.user.email);
+          await this.supabase.auth.signOut(); // Sign out unconfirmed user
+          return { 
+            success: false, 
+            error: 'Please confirm your email before logging in. Check your inbox for the confirmation link.' 
+          };
+        }
+        
         console.log('Login successful:', data.user?.email);
         
         // Redirect will be handled by auth state change listener
