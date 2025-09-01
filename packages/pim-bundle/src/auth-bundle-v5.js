@@ -596,14 +596,17 @@
 
       const logoutElements = [];
       logoutSelectors.forEach(selector => {
-        document.querySelectorAll(selector).forEach(element => {
+        const elements = document.querySelectorAll(selector);
+        console.log(`🔍 Selector "${selector}" found ${elements.length} element(s)`);
+        elements.forEach(element => {
           if (!logoutElements.includes(element)) {
             logoutElements.push(element);
+            console.log(`📌 Added logout element:`, element.tagName, element.className, element.textContent);
           }
         });
       });
 
-      console.log(`Found ${logoutElements.length} logout elements`);
+      console.log(`📊 Total unique logout elements found: ${logoutElements.length}`);
 
       logoutElements.forEach(element => {
         const newElement = element.cloneNode(true);
@@ -634,7 +637,10 @@
         });
       });
 
-      console.log(`Setup ${logoutElements.length} logout handlers`);
+      console.log(`✅ Setup ${logoutElements.length} logout handlers`);
+      
+      // Also set up a global logout function that can be called manually
+      window.nikoLogout = window.nikologout;
     }
 
     isProtectedPage() {
