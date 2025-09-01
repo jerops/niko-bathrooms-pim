@@ -269,9 +269,7 @@
       const userType = user.user_metadata?.user_type || user.user_metadata?.role || 'customer';
       const userName = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
 
-      // Set body attributes for styling
-      document.body.setAttribute('data-user-authenticated', 'true');
-      document.body.setAttribute('data-user-type', userType);
+      // Webflow handles all styling, no need for body attributes
 
       // Populate user data in DOM
       this.populateUserData(user, userName, userType);
@@ -291,9 +289,7 @@
     }
 
     handleSignedOutUser() {
-      // Remove body attributes
-      document.body.removeAttribute('data-user-authenticated');
-      document.body.removeAttribute('data-user-type');
+      // Webflow handles all styling, no need to modify body attributes
 
       // Hide authenticated content
       document.querySelectorAll('[niko-data="auth-required"]').forEach(el => {
@@ -426,6 +422,16 @@
         await this.createWebflowRecord(data.user.id, email, name, userType);
         
         console.log('🎉 Registration complete!');
+        
+        // Fire custom event for Webflow to handle modal, then redirect
+        window.dispatchEvent(new CustomEvent('nikoRegistrationComplete', {
+          detail: { 
+            user: data.user, 
+            message: 'Please confirm your email before proceeding.',
+            redirectToLogin: true 
+          }
+        }));
+        
         return { success: true, user: data.user };
 
       } catch (error) {
@@ -449,7 +455,23 @@
 
         if (error) {
           console.error('Login error:', error);
-          return { success: false, error: error.message };
+          
+          // Provide user-friendly error messages
+          let errorMessage = error.message;
+          
+          if (error.message.includes('Invalid login credentials')) {
+            errorMessage = 'Account does not exist or email/password is incorrect. Please check your credentials or sign up for a new account.';
+          } else if (error.message.includes('Email not confirmed')) {
+            errorMessage = 'Please confirm your email before logging in. Check your inbox for the confirmation link.';
+          } else if (error.message.includes('signup_disabled')) {
+            errorMessage = 'New registrations are currently disabled. Please contact support.';
+          } else if (error.message.includes('email_address_invalid')) {
+            errorMessage = 'Please enter a valid email address.';
+          } else if (error.message.includes('password')) {
+            errorMessage = 'Password is incorrect. Please try again.';
+          }
+          
+          return { success: false, error: errorMessage };
         }
 
         // Check if email is confirmed
@@ -585,59 +607,105 @@
     setupLogoutHandlers() {
       if (typeof document === 'undefined') return;
 
-      const logoutSelectors = [
-        '[niko-data="logout"]',
-        '[data-logout]',
-        '.logout-btn',
-        '.logout-button',
-        'a[href*="logout"]',
-        'button[onclick*="logout"]'
-      ];
-
-      const logoutElements = [];
-      logoutSelectors.forEach(selector => {
-        const elements = document.querySelectorAll(selector);
-        console.log(`🔍 Selector "${selector}" found ${elements.length} element(s)`);
-        elements.forEach(element => {
-          if (!logoutElements.includes(element)) {
-            logoutElements.push(element);
-            console.log(`📌 Added logout element:`, element.tagName, element.className, element.textContent);
-          }
-        });
-      });
-
-      console.log(`📊 Total unique logout elements found: ${logoutElements.length}`);
-
-      logoutElements.forEach(element => {
-        const newElement = element.cloneNode(true);
-        element.parentNode.replaceChild(newElement, element);
+      // Set up logout handlers with retries to catch dynamically loaded content
+      const setupHandlers = () => {
+        const logoutElements = [];
         
-        newElement.addEventListener('click', async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          
-          console.log('Logout button clicked');
-          const originalText = newElement.textContent;
-          
-          try {
-            newElement.textContent = 'Logging out...';
-            newElement.disabled = true;
-            
-            const result = await this.logout();
-            console.log('Logout result:', result);
-            
-            window.location.href = CONFIG.ROUTES.LOGIN_PAGE;
-            
-          } catch (error) {
-            console.error('Logout error:', error);
-            newElement.textContent = originalText;
-            newElement.disabled = false;
-            window.location.href = CONFIG.ROUTES.LOGIN_PAGE;
+        // Comprehensive logout selectors
+        const logoutSelectors = [
+          '[niko-data="logout"]',
+          '[data-logout]',
+          '.logout-btn',
+          '.logout-button',
+          '.logout',
+          '#logout',
+          'a[href*="logout"]',
+          'button[onclick*="logout"]',
+          '[title*="logout"]',
+          '[title*="Logout"]',
+          '[aria-label*="logout"]',
+          '[aria-label*="Logout"]'
+        ];
+
+        logoutSelectors.forEach(selector => {
+          const elements = document.querySelectorAll(selector);
+          console.log(`🔍 Selector "${selector}" found ${elements.length} element(s)`);
+          elements.forEach(element => {
+            if (!logoutElements.includes(element)) {
+              logoutElements.push(element);
+              console.log(`📌 Added logout element:`, element.tagName, element.className, element.textContent);
+            }
+          });
+        });
+
+        // Also search by text content
+        document.querySelectorAll('button, a').forEach(element => {
+          const text = (element.textContent || '').toLowerCase().trim();
+          if (text.includes('logout') || text.includes('log out') || text.includes('sign out')) {
+            if (!logoutElements.includes(element)) {
+              logoutElements.push(element);
+              console.log(`📌 Added logout element by text:`, element.tagName, element.className, element.textContent);
+            }
           }
         });
-      });
 
-      console.log(`✅ Setup ${logoutElements.length} logout handlers`);
+        console.log(`📊 Total unique logout elements found: ${logoutElements.length}`);
+
+        logoutElements.forEach(element => {
+          // Remove any existing event listeners by cloning
+          const newElement = element.cloneNode(true);
+          element.parentNode.replaceChild(newElement, element);
+          
+          newElement.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            console.log('🚪 Logout button clicked');
+            const originalText = newElement.textContent;
+            
+            try {
+              newElement.textContent = 'Logging out...';
+              newElement.disabled = true;
+              
+              const result = await this.logout();
+              console.log('✅ Logout result:', result);
+              
+              window.location.href = CONFIG.ROUTES.LOGIN_PAGE;
+              
+            } catch (error) {
+              console.error('❌ Logout error:', error);
+              newElement.textContent = originalText;
+              newElement.disabled = false;
+              window.location.href = CONFIG.ROUTES.LOGIN_PAGE;
+            }
+          });
+        });
+
+        console.log(`✅ Setup ${logoutElements.length} logout handlers`);
+        return logoutElements.length;
+      };
+
+      // Run immediately
+      const foundElements = setupHandlers();
+      
+      // If no elements found, retry with delays for dynamic content
+      if (foundElements === 0) {
+        console.log('⏳ No logout elements found initially, setting up retry attempts...');
+        setTimeout(() => {
+          console.log('🔄 Retry #1 - Looking for logout elements...');
+          setupHandlers();
+        }, 1000);
+        
+        setTimeout(() => {
+          console.log('🔄 Retry #2 - Looking for logout elements...');
+          setupHandlers();
+        }, 3000);
+        
+        setTimeout(() => {
+          console.log('🔄 Final retry - Looking for logout elements...');
+          setupHandlers();
+        }, 5000);
+      }
       
       // Also set up a global logout function that can be called manually
       window.nikoLogout = window.nikologout;
@@ -708,6 +776,13 @@
     }
   };
   console.log('✅ nikologout function registered');
+  
+  // Global redirect to login function
+  window.nikoRedirectToLogin = function() {
+    console.log('🔄 Redirecting to login page...');
+    window.location.href = CONFIG.ROUTES.LOGIN_PAGE;
+  };
+  console.log('✅ nikoRedirectToLogin function registered');
 
   console.log('🎉 NikoAuth: Professional authentication system loaded v5.0.0');
   console.log('🔍 You can test with: window.NikoAuthCore or window.NikoAuth');
