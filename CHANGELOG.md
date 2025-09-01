@@ -5,6 +5,72 @@ All notable changes to the Niko Bathrooms PIM system will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.0.0] - 2025-09-01
+
+### 🎉 Major Authentication System Upgrade
+
+#### Added
+- **Professional Authentication System v5.0.0**
+  - Cookie-based session storage (replacing localStorage for enhanced security)
+  - Implicit OAuth flow for seamless email confirmation
+  - Comprehensive debugging logs with emoji indicators
+  - Auto-retry logout handlers for dynamically loaded content
+  - User-friendly error messages for login failures
+  - Custom event system (`nikoAuthReady`, `nikoRegistrationComplete`, `nikoAuthSignedOut`)
+  - Global utility functions: `window.nikoRedirectToLogin()`, `window.nikologout()`
+
+- **Enhanced Security Features**
+  - httpOnly-compatible cookie storage implementation
+  - Automatic JWT token refresh handling  
+  - Session persistence across browser tabs and windows
+  - Professional error handling with actionable user feedback
+  - Email confirmation validation before dashboard access
+
+- **Advanced Webflow Integration**
+  - Automatic CMS user record creation via Supabase Edge Functions
+  - Role-based content visibility with `[niko-role="customer|retailer"]` attributes
+  - Content gating using `[niko-data="auth-required"]` elements
+  - Dynamic user data population in DOM elements (`[niko-data="user-name"]`, `[niko-data="user-email"]`)
+  - Seamless form integration with Webflow native forms
+
+- **Complete Authentication Flow**
+  - Registration → Email confirmation → Onboarding → Dashboard redirect
+  - Cross-browser/tab email confirmation support
+  - Automatic role-based redirects (customer vs retailer dashboards)
+  - Modal integration with post-registration redirect functionality
+  - Protected page detection and automatic login redirects
+
+#### Changed
+- **Breaking Change**: Upgraded from v3.0.0 to v5.0.0 authentication architecture
+- Migrated from localStorage to secure cookie-based session storage
+- Enhanced logout detection with comprehensive selector patterns and text-based search
+- Improved error messaging system for better user experience
+- Removed unnecessary DOM attribute manipulation (delegated to Webflow styling)
+- Updated CDN structure with versioned deployments for better cache management
+
+#### Fixed
+- Document.body null reference errors during page initialization
+- Dual initialization conflicts between v3.0.0 and v5.0.0 systems
+- CDN caching issues with strategic versioned deployments
+- Email confirmation token handling in URL hash parameters
+- Session establishment timing issues on page load
+- Supabase Edge Function 500 errors for Webflow CMS integration
+- Logout button detection for dynamically loaded dashboard content
+
+#### Technical Implementation
+- **CDN Architecture**: Multiple versioned builds for strategic cache-busting
+- **Build System**: Webpack production optimization with advanced minification
+- **Environment Detection**: Automatic development/production path resolution
+- **Session Management**: Professional cookie storage with 7-day secure expiration
+- **Error Handling**: Comprehensive user-friendly error message mapping
+- **Performance**: Reduced bundle size while adding more features
+
+#### Migration Guide
+- **New CDN URL**: `https://cdn.jsdelivr.net/gh/jerops/niko-bathrooms-pim@main/packages/pim-bundle/dist/niko-pim-auth-v5-errors.min.js`
+- **Backward Compatibility**: All existing `[niko-data]` attributes remain fully compatible
+- **No Breaking Changes**: Existing Webflow implementations work without modification
+- **Enhanced Features**: Automatic upgrade to improved error handling and session management
+
 ## [1.0.0] - 2025-08-28
 
 ### Added
