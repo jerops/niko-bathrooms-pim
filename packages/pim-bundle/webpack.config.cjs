@@ -2,6 +2,18 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = [
+    // Preloader Bundle (standalone preloader for all pages)
+    {
+        entry: './src/preloader-bundle.js',
+        output: {
+            filename: 'niko-preloader.min.js',
+            path: path.resolve(__dirname, 'dist'),
+        },
+        mode: 'production',
+        optimization: {
+            minimize: true,
+        }
+    },
     // Login Bundle (standalone for cleaner Webflow integration)
     {
         entry: './src/login-bundle.js',
