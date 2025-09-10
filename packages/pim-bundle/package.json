@@ -1,17 +1,23 @@
 {
   "name": "@nikobathrooms/pim-bundle",
-  "version": "1.0.0",
-  "description": "Bundle orchestrator for Niko Bathrooms PIM",
+  "version": "5.1.0",
+  "description": "Bundle orchestrator for Niko Bathrooms PIM - CDN Optimized",
   "type": "module",
-  "main": "./dist/niko-pim-full.min.js",
+  "main": "./dist/niko-pim-critical.min.js",
   "scripts": {
     "build": "webpack --mode=production",
     "dev": "webpack --mode=development --watch",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "deploy:cdn": "node scripts/deploy-cdn.js",
+    "test:cdn-performance": "node scripts/test-cdn-performance.js",
+    "test:bundle-size": "node scripts/check-bundle-size.js"
   },
   "dependencies": {
     "@nikobathrooms/auth": "workspace:*",
-    "@nikobathrooms/core": "workspace:*"
+    "@nikobathrooms/core": "workspace:*",
+    "@nikobathrooms/wishlist": "workspace:*",
+    "@nikobathrooms/notifications": "workspace:*",
+    "@nikobathrooms/content-gating": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.4.2",
@@ -21,7 +27,9 @@
   "keywords": [
     "bundle",
     "webpack",
-    "pim"
+    "pim",
+    "cdn-optimization",
+    "performance"
   ],
   "author": "Niko Bathrooms",
   "license": "MIT"

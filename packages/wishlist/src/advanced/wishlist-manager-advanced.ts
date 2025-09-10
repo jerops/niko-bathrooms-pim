@@ -1,8 +1,13 @@
-import { WishlistItem, WishlistConfig, WishlistActions } from './types';
+/**
+ * Advanced Wishlist Manager
+ * Extended wishlist functionality loaded on demand
+ */
+
+import { WishlistItem, WishlistConfig } from '../types';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_CONFIG } from '@nikobathrooms/core';
 
-export class WishlistManager implements WishlistActions {
+export class AdvancedWishlistManager {
   private config: WishlistConfig;
   private supabase: any;
   private storageKey = 'niko-wishlist-items';
@@ -13,73 +18,7 @@ export class WishlistManager implements WishlistActions {
   }
 
   /**
-   * Add product to wishlist
-   * Uses both local storage (immediate feedback) and Supabase (persistence)
-   */
-  async add(productId: string): Promise<boolean> {
-    try {
-      // Get current user
-      const { data: { user } } = await this.supabase.auth.getUser();
-      if (!user) {
-        // Store in localStorage for anonymous users
-        this.addToLocalStorage(productId);
-        return true;
-      }
-
-      // Add to Supabase for authenticated users
-      const { error } = await this.supabase
-        .from('wishlist_items')
-        .insert({
-          product_id: productId,
-          user_id: user.id,
-          added_at: new Date().toISOString()
-        });
-
-      if (!error) {
-        // Also update localStorage for immediate UI feedback
-        this.addToLocalStorage(productId);
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Error adding to wishlist:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Remove product from wishlist
-   */
-  async remove(productId: string): Promise<boolean> {
-    try {
-      const { data: { user } } = await this.supabase.auth.getUser();
-      
-      if (!user) {
-        this.removeFromLocalStorage(productId);
-        return true;
-      }
-
-      const { error } = await this.supabase
-        .from('wishlist_items')
-        .delete()
-        .eq('product_id', productId)
-        .eq('user_id', user.id);
-
-      if (!error) {
-        this.removeFromLocalStorage(productId);
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Error removing from wishlist:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Load user's complete wishlist
+   * Load user's complete wishlist with product details
    */
   async load(): Promise<WishlistItem[]> {
     try {
@@ -177,21 +116,98 @@ export class WishlistManager implements WishlistActions {
     }
   }
 
-  // Private helper methods
-  private addToLocalStorage(productId: string): void {
-    const items = this.getLocalStorageItems();
-    if (!items.includes(productId)) {
-      items.push(productId);
-      localStorage.setItem(this.storageKey, JSON.stringify(items));
+  /**
+   * Sync wishlist between devices
+   */
+  async sync(): Promise<boolean> {
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      if (!user) return false;
+
+      // Get local items
+      const localItems = this.getLocalStorageItems();
+      
+      // Get server items
+      const { data: serverItems } = await this.supabase
+        .from('wishlist_items')
+        .select('product_id')
+        .eq('user_id', user.id);
+
+      const serverProductIds = serverItems?.map(item => item.product_id) || [];
+
+      // Add local items to server
+      for (const productId of localItems) {
+        if (!serverProductIds.includes(productId)) {
+          await this.supabase
+            .from('wishlist_items')
+            .insert({
+              product_id: productId,
+              user_id: user.id,
+              added_at: new Date().toISOString()
+            });
+        }
+      }
+
+      // Update local storage with server items
+      localStorage.setItem(this.storageKey, JSON.stringify(serverProductIds));
+
+      return true;
+    } catch (error) {
+      console.error('Error syncing wishlist:', error);
+      return false;
     }
   }
 
-  private removeFromLocalStorage(productId: string): void {
-    const items = this.getLocalStorageItems();
-    const filtered = items.filter(id => id !== productId);
-    localStorage.setItem(this.storageKey, JSON.stringify(filtered));
+  /**
+   * Get wishlist analytics
+   */
+  async getAnalytics(): Promise<{
+    totalItems: number;
+    categories: Record<string, number>;
+    mostAdded: string[];
+    lastUpdated: Date;
+  }> {
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      if (!user) {
+        return {
+          totalItems: 0,
+          categories: {},
+          mostAdded: [],
+          lastUpdated: new Date()
+        };
+      }
+
+      const { data } = await this.supabase
+        .from('wishlist_items')
+        .select('*')
+        .eq('user_id', user.id);
+
+      // Process analytics
+      const totalItems = data?.length || 0;
+      const categories: Record<string, number> = {};
+      const mostAdded: string[] = [];
+
+      // This would typically join with product data for categories
+      // For now, return basic structure
+      return {
+        totalItems,
+        categories,
+        mostAdded,
+        lastUpdated: new Date()
+      };
+    } catch (error) {
+      console.error('Error getting wishlist analytics:', error);
+      return {
+        totalItems: 0,
+        categories: {},
+        mostAdded: [],
+        lastUpdated: new Date()
+      };
+    }
   }
 
+  // Private helper methods
   private getLocalStorageItems(): string[] {
     try {
       const items = localStorage.getItem(this.storageKey);

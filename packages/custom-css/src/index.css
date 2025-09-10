@@ -1,14 +1,17 @@
 /**
  * @nikobathrooms/custom-css
  * Core CSS utilities and design tokens for Niko Bathrooms PIM
+ * Story 2.1: Mobile Responsive Improvements
  */
 
 @import './variables.css';
 @import './reset.css';
 @import './base.css';
 @import './utilities.css';
+@import './mobile.css';
 
 /* Package identification */
 :root {
-  --niko-css-version: '1.0.0';
+  --niko-css-version: '2.1.0';
+  --niko-mobile-version: '2.1.0';
 }

@@ -1,21 +1,48 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import type { AuthResult, RegisterData, LoginData } from './types.js';
-import { getSignupEmailRedirectUrl, getEmailConfirmationUrl, getDashboardUrl } from './redirects.js';
+/**
+ * Advanced Authentication Manager
+ * Extended authentication functionality for registration, email confirmation, and advanced features
+ */
 
-export class AuthManager {
-  private supabase: SupabaseClient;
-  private supabaseUrl: string;
-  private initialized = false;
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import type { AuthResult, RegisterData, PasswordValidationResult } from './types-advanced.js';
+import { getSignupEmailRedirectUrl, getEmailConfirmationUrl, getOnboardingUrlForRole } from './redirects-advanced.js';
+
+export class AdvancedAuthManager {
+  protected supabase: SupabaseClient;
+  protected initialized = false;
 
   constructor(supabaseUrl: string, supabaseKey: string) {
-    this.supabaseUrl = supabaseUrl;
     this.supabase = createClient(supabaseUrl, supabaseKey);
     this.initialized = true;
-    console.log('Niko Auth Manager initialized');
+    console.log('Niko Advanced Auth Manager initialized');
   }
 
   isInitialized(): boolean {
     return this.initialized;
+  }
+
+  /**
+   * Validate email format
+   */
+  protected isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
+
+  /**
+   * Validate password strength
+   */
+  protected isValidPassword(password: string): PasswordValidationResult {
+    if (password.length < 8) {
+      return { valid: false, message: 'Password must be at least 8 characters long' };
+    }
+    
+    // Check for at least one letter and one number
+    if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
+      return { valid: false, message: 'Password must contain at least one letter and one number' };
+    }
+
+    return { valid: true };
   }
 
   /**
@@ -48,30 +75,6 @@ export class AuthManager {
       // If check fails, allow registration attempt
       return false;
     }
-  }
-
-  /**
-   * Validate email format
-   */
-  private isValidEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  }
-
-  /**
-   * Validate password strength
-   */
-  private isValidPassword(password: string): { valid: boolean; message?: string } {
-    if (password.length < 8) {
-      return { valid: false, message: 'Password must be at least 8 characters long' };
-    }
-    
-    // Check for at least one letter and one number
-    if (!/(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
-      return { valid: false, message: 'Password must contain at least one letter and one number' };
-    }
-
-    return { valid: true };
   }
 
   async register(data: RegisterData): Promise<AuthResult> {
@@ -171,104 +174,12 @@ export class AuthManager {
     }
   }
 
-  async login(data: LoginData): Promise<AuthResult> {
-    console.log('Logging in user:', { email: data.email });
-
-    try {
-      // 1. Validate input
-      if (!data.email || !data.password) {
-        return { success: false, error: 'Email and password are required' };
-      }
-
-      // 2. Validate email format
-      if (!this.isValidEmail(data.email)) {
-        return { success: false, error: 'Please enter a valid email address' };
-      }
-
-      // 3. Attempt login
-      const { data: result, error } = await this.supabase.auth.signInWithPassword({
-        email: data.email.toLowerCase().trim(),
-        password: data.password,
-      });
-
-      if (error) {
-        console.error('Login error:', error);
-        
-        // Handle specific login errors
-        if (error.message.includes('Invalid login credentials')) {
-          return { success: false, error: 'Invalid email or password. Please check your credentials and try again.' };
-        }
-        
-        if (error.message.includes('Email not confirmed')) {
-          return { success: false, error: 'Please check your email and click the confirmation link before logging in.' };
-        }
-        
-        return { success: false, error: error.message };
-      }
-
-      console.log('Login successful:', result.user?.email);
-      return { success: true, user: result.user };
-    } catch (error) {
-      console.error('Login failed:', error);
-      return { success: false, error: (error as Error).message };
-    }
-  }
-
-  async logout(): Promise<AuthResult> {
-    console.log('Logging out user...');
-
-    try {
-      const { error } = await this.supabase.auth.signOut();
-      
-      // Clear storage like production
-      localStorage.clear();
-      sessionStorage.clear();
-
-      if (error) {
-        console.error('Logout error:', error);
-        return { success: false, error: error.message };
-      }
-
-      console.log('Logout successful');
-      return { success: true };
-    } catch (error) {
-      console.error('Logout failed:', error);
-      return { success: false, error: (error as Error).message };
-    }
-  }
-
-  async getCurrentUser() {
-    if (!this.initialized) return null;
-
-    try {
-      const { data: { user }, error } = await this.supabase.auth.getUser();
-      if (error) throw error;
-      return user;
-    } catch (error) {
-      console.error('Get user failed:', error);
-      return null;
-    }
-  }
-
-  async isAuthenticated(): Promise<boolean> {
-    const user = await this.getCurrentUser();
-    return !!user;
-  }
-
   /**
    * Get appropriate onboarding URL for user role (after email confirmation)
    */
   getOnboardingUrlForRole(role: 'customer' | 'retailer'): string {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    return getSignupEmailRedirectUrl(role, baseUrl);
-  }
-
-  /**
-   * Get final dashboard URL for user role (after onboarding complete)
-   */
-  getDashboardUrlForRole(role: 'customer' | 'retailer'): string {
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    return getDashboardUrl(role, baseUrl);
+    return getOnboardingUrlForRole(role, baseUrl);
   }
 
   /**
@@ -280,48 +191,19 @@ export class AuthManager {
   }
 
   /**
-   * Update user metadata
+   * Get current user (inherited from core functionality)
    */
-  async updateUserMetadata(metadata: Record<string, any>): Promise<void> {
-    try {
-      const { error } = await this.supabase.auth.updateUser({
-        data: metadata
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      console.log('User metadata updated:', metadata);
-    } catch (error) {
-      console.error('Failed to update user metadata:', error);
-      throw error;
-    }
-  }
+  async getCurrentUser() {
+    if (!this.initialized) return null;
 
-  /**
-   * Get access token for authenticated requests
-   */
-  async getAccessToken(): Promise<string | null> {
     try {
-      const { data: { session }, error } = await this.supabase.auth.getSession();
-      
-      if (error || !session) {
-        return null;
-      }
-      
-      return session.access_token;
+      const { data: { user }, error } = await this.supabase.auth.getUser();
+      if (error) throw error;
+      return user;
     } catch (error) {
-      console.error('Failed to get access token:', error);
+      console.error('Get user failed:', error);
       return null;
     }
-  }
-
-  /**
-   * Get Supabase URL for API calls
-   */
-  getSupabaseUrl(): string {
-    return this.supabaseUrl;
   }
 
   private async createWebflowRecord(userId: string, email: string, name: string, userType: string) {

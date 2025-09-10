@@ -1,19 +1,31 @@
-import { WishlistItem, WishlistConfig, WishlistActions } from './types';
+/**
+ * Core Wishlist Manager
+ * Essential wishlist functionality for immediate loading
+ */
+
+import { WishlistItem, WishlistConfig } from '../types';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_CONFIG } from '@nikobathrooms/core';
 
-export class WishlistManager implements WishlistActions {
-  private config: WishlistConfig;
-  private supabase: any;
+export class WishlistManagerCore {
+    private config: WishlistConfig;
+    private supabase: any;
   private storageKey = 'niko-wishlist-items';
 
-  constructor(config: WishlistConfig) {
+        constructor(config: WishlistConfig) {
     this.config = config;
     this.supabase = createClient(SUPABASE_CONFIG.URL, SUPABASE_CONFIG.ANON_KEY);
   }
 
   /**
-   * Add product to wishlist
+   * Get configuration (for unified manager access)
+   */
+  getConfig(): WishlistConfig {
+    return this.config;
+  }
+
+  /**
+   * Add product to wishlist (core functionality)
    * Uses both local storage (immediate feedback) and Supabase (persistence)
    */
   async add(productId: string): Promise<boolean> {
@@ -49,7 +61,7 @@ export class WishlistManager implements WishlistActions {
   }
 
   /**
-   * Remove product from wishlist
+   * Remove product from wishlist (core functionality)
    */
   async remove(productId: string): Promise<boolean> {
     try {
@@ -79,101 +91,50 @@ export class WishlistManager implements WishlistActions {
   }
 
   /**
-   * Load user's complete wishlist
+   * Check if product is in wishlist (core functionality)
    */
-  async load(): Promise<WishlistItem[]> {
+  async has(productId: string): Promise<boolean> {
     try {
       const { data: { user } } = await this.supabase.auth.getUser();
       
       if (!user) {
-        // Return localStorage items for anonymous users
-        return this.getFromLocalStorage();
+        return this.getLocalStorageItems().includes(productId);
       }
 
-      const { data, error } = await this.supabase
+      const { data } = await this.supabase
         .from('wishlist_items')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('added_at', { ascending: false });
-
-      if (error) {
-        console.error('Error loading wishlist:', error);
-        return this.getFromLocalStorage();
-      }
-
-      return data || [];
-    } catch (error) {
-      console.error('Error loading wishlist:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Clear entire wishlist
-   */
-  async clear(): Promise<boolean> {
-    try {
-      const { data: { user } } = await this.supabase.auth.getUser();
-      
-      if (!user) {
-        localStorage.removeItem(this.storageKey);
-        return true;
-      }
-
-      const { error } = await this.supabase
-        .from('wishlist_items')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (!error) {
-        localStorage.removeItem(this.storageKey);
-        return true;
-      }
-      
-      return false;
-    } catch (error) {
-      console.error('Error clearing wishlist:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Generate shareable wishlist link
-   */
-  async share(): Promise<string> {
-    try {
-      const { data: { user } } = await this.supabase.auth.getUser();
-      if (!user) return '';
-
-      // Create or get existing share token
-      const { data, error } = await this.supabase
-        .from('wishlist_shares')
-        .select('share_token')
+        .select('id')
+        .eq('product_id', productId)
         .eq('user_id', user.id)
         .single();
 
-      if (data?.share_token) {
-        return `${window.location.origin}/wishlist/shared/${data.share_token}`;
-      }
-
-      // Generate new share token
-      const shareToken = this.generateShareToken();
-      const { error: insertError } = await this.supabase
-        .from('wishlist_shares')
-        .insert({
-          user_id: user.id,
-          share_token: shareToken,
-          created_at: new Date().toISOString()
-        });
-
-      if (!insertError) {
-        return `${window.location.origin}/wishlist/shared/${shareToken}`;
-      }
-
-      return '';
+      return !!data;
     } catch (error) {
-      console.error('Error sharing wishlist:', error);
-      return '';
+      console.error('Error checking wishlist:', error);
+      return this.getLocalStorageItems().includes(productId);
+    }
+  }
+
+  /**
+   * Get wishlist count (core functionality)
+   */
+  async getCount(): Promise<number> {
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      
+      if (!user) {
+        return this.getLocalStorageItems().length;
+      }
+
+      const { count } = await this.supabase
+        .from('wishlist_items')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting wishlist count:', error);
+      return this.getLocalStorageItems().length;
     }
   }
 
@@ -199,19 +160,5 @@ export class WishlistManager implements WishlistActions {
     } catch {
       return [];
     }
-  }
-
-  private getFromLocalStorage(): WishlistItem[] {
-    return this.getLocalStorageItems().map(productId => ({
-      id: `local-${productId}`,
-      productId,
-      productSlug: productId,
-      userId: 'local',
-      addedAt: new Date()
-    }));
-  }
-
-  private generateShareToken(): string {
-    return Math.random().toString(36).substring(2) + Date.now().toString(36);
   }
 }
