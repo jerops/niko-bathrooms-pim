@@ -178,9 +178,18 @@ gating.applyGating();
 Add to Webflow **Site Settings → Custom Code → Head Code:**
 
 ```html
-<!-- Core PIM System -->
+<!-- Authentication & Preloader -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/gh/jerops/niko-bathrooms-pim@main/packages/auth/src/niko-auth-core.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/jerops/niko-bathrooms-pim@bmad-method-integration/packages/pim-bundle/dist/niko-preloader.min.js"></script>
+
+<!-- Core PIM System (Optional) -->
 <script src="https://cdn.jsdelivr.net/gh/jerops/niko-bathrooms-pim@main/packages/pim-bundle/dist/niko-pim-full.min.js"></script>
 <link href="https://cdn.jsdelivr.net/gh/jerops/niko-bathrooms-pim@main/packages/custom-css/dist/niko-pim.min.css" rel="stylesheet">
+
+<!-- Page-Specific Scripts -->
+<!-- On login page only: -->
+<script src="https://cdn.jsdelivr.net/gh/jerops/niko-bathrooms-pim@bmad-method-integration/packages/pim-bundle/dist/niko-login-handler.min.js"></script>
 
 <script>
 // Initialize system
