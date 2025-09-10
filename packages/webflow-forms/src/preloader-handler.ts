@@ -171,6 +171,8 @@ export class PreloaderHandler {
   private isProtectedPage(): boolean {
     const path = window.location.pathname;
     const protectedPaths = [
+      '/dev/app/customer/',
+      '/dev/app/retailer/',
       '/app/customer/',
       '/app/retailer/',
       '/dashboard',
@@ -185,7 +187,7 @@ export class PreloaderHandler {
    * Redirect to login page
    */
   private redirectToLogin(): void {
-    const loginUrl = '/app/auth/log-in'; // Adjust this to your login page URL
+    const loginUrl = '/dev/app/auth/log-in'; // Using /dev/ path for development
     console.log('🚀 Redirecting to login:', loginUrl);
     window.location.href = loginUrl;
   }

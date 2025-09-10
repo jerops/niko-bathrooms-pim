@@ -14,7 +14,7 @@ Add these scripts to your Webflow page custom code (before </body>):
 <script src="https://cdn.jsdelivr.net/gh/jerops/niko-bathrooms-pim@feature/onboarding/packages/pim-bundle/dist/niko-pim-auth-v5-final.min.js"></script>
 ```
 
-### 2. Preloader (Required)
+### 2. Preloader (Required) - Updated for /dev/ paths
 ```html
 <script src="https://cdn.jsdelivr.net/gh/jerops/niko-bathrooms-pim@feature/onboarding/packages/pim-bundle/dist/niko-preloader.min.js"></script>
 ```
@@ -23,6 +23,15 @@ Add these scripts to your Webflow page custom code (before </body>):
 ```html
 <script src="https://cdn.jsdelivr.net/gh/jerops/niko-bathrooms-pim@feature/onboarding/packages/pim-bundle/dist/niko-onboarding-handler.min.js"></script>
 ```
+
+## Development vs Production Paths
+
+Currently configured for **development** with `/dev/` paths:
+- Login redirect: `/dev/app/auth/log-in` 
+- Protected paths: `/dev/app/customer/`, `/dev/app/retailer/`
+- Dashboard redirects: `/dev/app/customer/dashboard`, `/dev/app/retailer/dashboard`
+
+This prevents accidentally affecting production URLs while testing.
 
 ## Formly Form Setup
 

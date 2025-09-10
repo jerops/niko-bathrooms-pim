@@ -148,6 +148,8 @@
     isProtectedPage() {
       const path = window.location.pathname;
       const protectedPaths = [
+        '/dev/app/customer/',
+        '/dev/app/retailer/',
         '/app/customer/',
         '/app/retailer/', 
         '/dashboard',
@@ -159,7 +161,7 @@
     }
 
     redirectToLogin() {
-      const loginUrl = '/app/auth/log-in';
+      const loginUrl = '/dev/app/auth/log-in';
       console.log('🚀 Redirecting to login:', loginUrl);
       window.location.href = loginUrl;
     }
